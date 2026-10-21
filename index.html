@@ -13,7 +13,7 @@
 </head>
 <body class="min-h-screen pb-16">
 
-  <!-- Iframe tersembunyi untuk bypass CORS saat submit form -->
+  <!-- Iframe tersembunyi untuk proses submit tanpa reload -->
   <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(isSubmitting) { onFormSuccess(); }"></iframe>
 
   <!-- Header -->
@@ -35,7 +35,7 @@
 
   <main class="max-w-6xl mx-auto px-4 sm:px-8 py-6 space-y-6">
 
-    <!-- Statistik Utama -->
+    <!-- Ringkasan Statistik -->
     <div class="grid grid-cols-3 gap-3 sm:gap-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-sm text-center">
         <p class="text-[10px] sm:text-xs text-stone-400 font-semibold uppercase tracking-wider">Total Pendapatan</p>
@@ -51,7 +51,7 @@
       </div>
     </div>
 
-    <!-- Layout Utama -->
+    <!-- Main Content Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
       <!-- Form Input -->
@@ -100,7 +100,9 @@
             <h2 class="text-base font-bold text-stone-800 flex items-center gap-2">
               <span>📊</span> Rekap Hasil Keseluruhan (Per Warung)
             </h2>
-            <span class="text-xs text-stone-400 font-medium">Status Aktif</span>
+            <button onclick="muatData()" class="text-xs text-rose-500 font-medium hover:underline flex items-center gap-1">
+              🔄 Refresh Data
+            </button>
           </div>
           <div id="rekapWarungContainer" class="space-y-3"></div>
         </div>
@@ -120,8 +122,8 @@
 
           <div id="cardContainer" class="space-y-3"></div>
 
-          <div id="emptyState" class="text-center py-12 text-stone-400 border border-dashed border-stone-200 rounded-2xl hidden">
-            Belum ada data transaksi.
+          <div id="emptyState" class="text-center py-12 text-stone-400 border border-dashed border-stone-200 rounded-2xl">
+            Sedang mengambil data dari Spreadsheet... ⏳
           </div>
         </div>
 
@@ -132,26 +134,28 @@
   </main>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyNVvpbBzYxW2U4LWMEZX4hVyUZuj8aS9BhFdvzAvISnw1RoHv6qo8AVJvL_h_N5j9_BA/exec';
+    // ==========================================
+    // PASTE URL APPS SCRIPT LENGKAP ANDA DI SINI
+    // ==========================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyQGU4jh2ihT3Pmeio4y0KVJmSzro-Y_TMW6wjBZq6EyFKeW99T4X4YEd1K4SXMihYNPg/exec';
 
     let globalData = [];
     let isSubmitting = false;
 
     window.onload = function() {
+      // Pasang URL action untuk form
       document.getElementById('formTransaksi').action = API_URL + '?action=simpan';
-      
-      // 1. DIBACA LANGSUNG DARI LOCALSTORAGE (INSTANT LOAD)
-      const cachedData = localStorage.getItem('buqet_data');
-      if (cachedData) {
+
+      // Load cache lokal dulu jika ada
+      const cached = localStorage.getItem('buqet_cache');
+      if (cached) {
         try {
-          globalData = JSON.parse(cachedData);
-          renderApp(globalData); // Tampilkan data lama seketika tanpa nunggu server
-        } catch(e) {
-          console.error("Gagal parse cache local:", e);
-        }
+          globalData = JSON.parse(cached);
+          renderApp(globalData);
+        } catch(e) {}
       }
 
-      // 2. TETAP SYNC DENGAN GOOGLE SHEETS DI BACKGROUND
+      // Ambil data terbaru
       muatData();
     };
 
@@ -162,18 +166,21 @@
       const script = document.createElement('script');
       script.id = 'jsonp_script';
       script.src = API_URL + '?callback=handleJSONPResponse&t=' + new Date().getTime();
+      
+      script.onerror = function() {
+        document.getElementById('emptyState').innerText = "Gagal terhubung ke Google Sheets. Coba tekan Refresh.";
+      };
+
       document.body.appendChild(script);
     }
 
     function handleJSONPResponse(data) {
       if (Array.isArray(data)) {
         globalData = data;
-        
-        // Simpan data terbaru ke LocalStorage untuk pembukaan berikutnya
-        localStorage.setItem('buqet_data', JSON.stringify(data));
-        
-        // Render ulang tampilan dengan data paling fresh dari Google Sheets
+        localStorage.setItem('buqet_cache', JSON.stringify(data));
         renderApp(globalData);
+      } else if (data && data.error) {
+        alert("Error dari Spreadsheet: " + data.error);
       }
     }
 
@@ -190,6 +197,7 @@
       jumlahData.innerText = `${data.length} catatan tersimpan`;
 
       if (data.length === 0) {
+        emptyState.innerText = "Belum ada catatan transaksi di Spreadsheet.";
         emptyState.classList.remove('hidden');
         updateStatistik([]);
         rekapContainer.innerHTML = `<p class="text-xs text-stone-400 text-center py-4">Belum ada data rekap per warung.</p>`;
@@ -309,8 +317,8 @@
       
       setTimeout(() => {
         msg.innerText = '';
-        muatData(); // Refresh data dari sheet
-      }, 1000);
+        muatData();
+      }, 1500);
     }
 
     function hapusBaris(rowId) {
