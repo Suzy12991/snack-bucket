@@ -4,19 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BuQet Store Manager</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Google Font Poppins -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Poppins', sans-serif; background-color: #FAF8F5; color: #3D3130; -webkit-tap-highlight-color: transparent; }
-    input, select { font-size: 16px !important; }
-  </style>
+  <!-- CSS Kustom Terpisah -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen pb-16">
 
-  <!-- Iframe tersembunyi untuk proses submit tanpa reload -->
-  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(isSubmitting) { onFormSuccess(); }"></iframe>
-
-  <!-- Header -->
+  <!-- Header Estetik Warm & Minimalist -->
   <header class="bg-white border-b border-stone-200 sticky top-0 z-30 px-4 sm:px-8 py-4 shadow-sm">
     <div class="max-w-6xl mx-auto flex justify-between items-center">
       <div>
@@ -35,7 +34,7 @@
 
   <main class="max-w-6xl mx-auto px-4 sm:px-8 py-6 space-y-6">
 
-    <!-- Ringkasan Statistik -->
+    <!-- Statistik Utama Global -->
     <div class="grid grid-cols-3 gap-3 sm:gap-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-sm text-center">
         <p class="text-[10px] sm:text-xs text-stone-400 font-semibold uppercase tracking-wider">Total Pendapatan</p>
@@ -51,19 +50,19 @@
       </div>
     </div>
 
-    <!-- Main Content Layout -->
+    <!-- Layout Utama: Form di Kiri, Rekap & Riwayat di Kanan -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-      <!-- Form Input -->
+      <!-- Kolom Kiri: Form Input -->
       <div class="lg:col-span-5 bg-white rounded-3xl border border-stone-200 shadow-sm p-6 space-y-4 lg:sticky lg:top-24">
         <h2 class="text-base font-bold text-stone-800 flex items-center gap-2">
           <span>📝</span> Input Setoran Hari Ini
         </h2>
         
-        <form id="formTransaksi" target="hidden_iframe" method="POST" onsubmit="handleFormSubmit()" class="space-y-4">
+        <form id="formTransaksi" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold uppercase text-stone-400 mb-1">Nama Warung / Tempat Titip</label>
-            <input type="text" name="warung" id="warung" list="listWarung" required placeholder="Cth: Warung Bu Ani" 
+            <input type="text" id="warung" list="listWarung" required placeholder="Cth: Warung Bu Ani" 
               class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-400">
             <datalist id="listWarung"></datalist>
           </div>
@@ -71,12 +70,12 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold uppercase text-stone-400 mb-1">Titipan Baru (Pcs)</label>
-              <input type="number" name="titipanBaru" id="titipanBaru" min="0" value="0" required 
+              <input type="number" id="titipanBaru" min="0" value="0" required 
                 class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-center font-bold focus:outline-none focus:ring-2 focus:ring-rose-400">
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase text-stone-400 mb-1">Terjual (Pcs)</label>
-              <input type="number" name="terjual" id="terjual" min="0" value="0" required 
+              <input type="number" id="terjual" min="0" value="0" required 
                 class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-center font-bold focus:outline-none focus:ring-2 focus:ring-rose-400">
             </div>
           </div>
@@ -91,23 +90,23 @@
         </form>
       </div>
 
-      <!-- Rekap & Riwayat -->
+      <!-- Kolom Kanan: Rekap & Riwayat -->
       <div class="lg:col-span-7 space-y-6">
 
-        <!-- Rekap Per Warung -->
+        <!-- 1. Rekap Per Warung -->
         <div class="bg-white rounded-3xl border border-stone-200 shadow-sm p-5 space-y-4">
           <div class="flex justify-between items-center">
             <h2 class="text-base font-bold text-stone-800 flex items-center gap-2">
               <span>📊</span> Rekap Hasil Keseluruhan (Per Warung)
             </h2>
-            <button onclick="muatData()" class="text-xs text-rose-500 font-medium hover:underline flex items-center gap-1">
+            <button onclick="muatData()" class="text-xs text-rose-500 font-medium hover:underline flex items-center gap-1 cursor-pointer">
               🔄 Refresh Data
             </button>
           </div>
           <div id="rekapWarungContainer" class="space-y-3"></div>
         </div>
 
-        <!-- Riwayat Catatan -->
+        <!-- 2. Riwayat Catatan Harian -->
         <div class="bg-white rounded-3xl border border-stone-200 shadow-sm p-5 space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
@@ -122,8 +121,8 @@
 
           <div id="cardContainer" class="space-y-3"></div>
 
-          <div id="emptyState" class="text-center py-12 text-stone-400 border border-dashed border-stone-200 rounded-2xl">
-            Sedang mengambil data dari Spreadsheet... ⏳
+          <div id="emptyState" class="text-center py-12 text-stone-400 border border-dashed border-stone-200 rounded-2xl hidden">
+            Belum ada data transaksi. Yuk input data pertama kamu di sebelah kiri! 🚀
           </div>
         </div>
 
@@ -133,213 +132,7 @@
 
   </main>
 
-  <script>
-    // ==========================================
-    // PASTE URL APPS SCRIPT LENGKAP ANDA DI SINI
-    // ==========================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyQGU4jh2ihT3Pmeio4y0KVJmSzro-Y_TMW6wjBZq6EyFKeW99T4X4YEd1K4SXMihYNPg/exec';
-
-    let globalData = [];
-    let isSubmitting = false;
-
-    window.onload = function() {
-      // Pasang URL action untuk form
-      document.getElementById('formTransaksi').action = API_URL + '?action=simpan';
-
-      // Load cache lokal dulu jika ada
-      const cached = localStorage.getItem('buqet_cache');
-      if (cached) {
-        try {
-          globalData = JSON.parse(cached);
-          renderApp(globalData);
-        } catch(e) {}
-      }
-
-      // Ambil data terbaru
-      muatData();
-    };
-
-    function muatData() {
-      const oldScript = document.getElementById('jsonp_script');
-      if (oldScript) oldScript.remove();
-
-      const script = document.createElement('script');
-      script.id = 'jsonp_script';
-      script.src = API_URL + '?callback=handleJSONPResponse&t=' + new Date().getTime();
-      
-      script.onerror = function() {
-        document.getElementById('emptyState').innerText = "Gagal terhubung ke Google Sheets. Coba tekan Refresh.";
-      };
-
-      document.body.appendChild(script);
-    }
-
-    function handleJSONPResponse(data) {
-      if (Array.isArray(data)) {
-        globalData = data;
-        localStorage.setItem('buqet_cache', JSON.stringify(data));
-        renderApp(globalData);
-      } else if (data && data.error) {
-        alert("Error dari Spreadsheet: " + data.error);
-      }
-    }
-
-    function renderApp(data) {
-      if (!data) data = [];
-
-      const container = document.getElementById('cardContainer');
-      const rekapContainer = document.getElementById('rekapWarungContainer');
-      const emptyState = document.getElementById('emptyState');
-      const jumlahData = document.getElementById('jumlahData');
-      
-      container.innerHTML = '';
-      rekapContainer.innerHTML = '';
-      jumlahData.innerText = `${data.length} catatan tersimpan`;
-
-      if (data.length === 0) {
-        emptyState.innerText = "Belum ada catatan transaksi di Spreadsheet.";
-        emptyState.classList.remove('hidden');
-        updateStatistik([]);
-        rekapContainer.innerHTML = `<p class="text-xs text-stone-400 text-center py-4">Belum ada data rekap per warung.</p>`;
-        return;
-      }
-      emptyState.classList.add('hidden');
-
-      const uniqueWarung = [...new Set(data.map(item => item.warung))];
-      document.getElementById('listWarung').innerHTML = uniqueWarung.map(w => `<option value="${w}">`).join('');
-
-      // Hitung Rekap
-      const rekapMap = {};
-      data.forEach(item => {
-        const w = item.warung;
-        if (!rekapMap[w]) {
-          rekapMap[w] = { warung: w, totalTitipan: 0, totalTerjual: 0, sisaStokAktif: 0, totalPendapatan: 0 };
-        }
-        rekapMap[w].totalTitipan += Number(item.titipanBaru) || 0;
-        rekapMap[w].totalTerjual += Number(item.terjual) || 0;
-        rekapMap[w].totalPendapatan += Number(item.totalPenjualan) || 0;
-        rekapMap[w].sisaStokAktif = Number(item.sisa) || 0;
-      });
-
-      Object.values(rekapMap).forEach(rekap => {
-        const rekapCard = document.createElement('div');
-        rekapCard.className = 'bg-stone-50 border border-stone-200/80 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3';
-        rekapCard.innerHTML = `
-          <div>
-            <h3 class="font-bold text-stone-800 text-sm sm:text-base">🏪 ${rekap.warung}</h3>
-            <p class="text-xs text-stone-500 mt-0.5">
-              Sisa Stok: <span class="font-semibold text-emerald-600">${rekap.sisaStokAktif} pcs</span> | 
-              Terjual: <span class="font-semibold text-amber-600">${rekap.totalTerjual} pcs</span>
-            </p>
-          </div>
-          <div class="text-right sm:text-right w-full sm:w-auto flex justify-between sm:block border-t sm:border-t-0 pt-2 sm:pt-0 border-stone-200">
-            <span class="text-[10px] uppercase text-stone-400 block sm:hidden">Total Pendapatan</span>
-            <span class="font-bold text-rose-600 text-sm sm:text-base">Rp ${rekap.totalPendapatan.toLocaleString('id-ID')}</span>
-          </div>
-        `;
-        rekapContainer.appendChild(rekapCard);
-      });
-
-      // Render Riwayat
-      const reversed = [...data].reverse();
-      reversed.forEach(row => {
-        const card = document.createElement('div');
-        card.className = 'bg-stone-50/60 border border-stone-100 p-4 rounded-2xl flex flex-col gap-2.5 relative';
-        card.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-[10px] bg-stone-200/70 text-stone-600 font-semibold px-2 py-0.5 rounded-md">${row.tanggal}</span>
-              <h4 class="font-bold text-stone-800 text-sm mt-1">${row.warung}</h4>
-            </div>
-            <button onclick="hapusBaris(${row.id})" class="text-stone-300 hover:text-rose-500 p-1 transition-colors" title="Hapus">
-              🗑️
-            </button>
-          </div>
-          <div class="grid grid-cols-3 gap-2 bg-white border border-stone-200/60 p-2.5 rounded-xl text-center text-xs">
-            <div>
-              <span class="text-stone-400 block text-[10px]">Titipan Baru</span>
-              <span class="font-bold text-sky-600">+${row.titipanBaru}</span>
-            </div>
-            <div>
-              <span class="text-stone-400 block text-[10px]">Terjual</span>
-              <span class="font-bold text-emerald-600">${row.terjual}</span>
-            </div>
-            <div>
-              <span class="text-stone-400 block text-[10px]">Sisa Stok</span>
-              <span class="font-bold text-amber-600">${row.sisa}</span>
-            </div>
-          </div>
-          <div class="flex justify-between items-center text-xs pt-1">
-            <span class="text-stone-400">Penjualan (Rp 5rb):</span>
-            <span class="font-bold text-rose-600">Rp ${Number(row.totalPenjualan).toLocaleString('id-ID')}</span>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-
-      updateStatistik(data);
-    }
-
-    function updateStatistik(data) {
-      if (!data) data = [];
-      let totalPendapatan = 0;
-      let totalTerjual = 0;
-      const latestSisaMap = {};
-
-      data.forEach(item => {
-        totalPendapatan += Number(item.totalPenjualan) || 0;
-        totalTerjual += Number(item.terjual) || 0;
-        latestSisaMap[item.warung] = Number(item.sisa) || 0;
-      });
-
-      let totalSisaStok = Object.values(latestSisaMap).reduce((a, b) => a + b, 0);
-
-      document.getElementById('statPendapatan').innerText = `Rp ${totalPendapatan.toLocaleString('id-ID')}`;
-      document.getElementById('statTerjual').innerText = `${totalTerjual} Pcs`;
-      document.getElementById('statSisa').innerText = `${totalSisaStok} Pcs`;
-    }
-
-    function handleFormSubmit() {
-      isSubmitting = true;
-      const btn = document.getElementById('btnSimpan');
-      btn.disabled = true;
-      btn.innerText = 'Menyimpan... ⏳';
-    }
-
-    function onFormSuccess() {
-      isSubmitting = false;
-      const btn = document.getElementById('btnSimpan');
-      const msg = document.getElementById('statusMsg');
-      btn.disabled = false;
-      btn.innerText = 'Simpan Transaksi ✨';
-      msg.innerText = 'Data berhasil disimpan!';
-      document.getElementById('formTransaksi').reset();
-      
-      setTimeout(() => {
-        msg.innerText = '';
-        muatData();
-      }, 1500);
-    }
-
-    function hapusBaris(rowId) {
-      if (confirm("Hapus catatan transaksi ini?")) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = API_URL + '?action=hapus&rowId=' + rowId;
-        form.target = 'hidden_iframe';
-        document.body.appendChild(form);
-        
-        isSubmitting = true;
-        form.submit();
-        form.remove();
-      }
-    }
-
-    function filterTabel() {
-      const keyword = document.getElementById('searchWarung').value.toLowerCase();
-      const filtered = globalData.filter(item => item.warung.toLowerCase().includes(keyword));
-      renderApp(filtered);
-    }
-  </script>
+  <!-- Script JS Terpisah -->
+  <script src="script.js"></script>
 </body>
 </html>
