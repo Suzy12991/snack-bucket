@@ -1,0 +1,12 @@
+/* Gaya Dasar & Estetika Warm Vanilla */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #FAF8F5;
+  color: #3D3130;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mencegah auto-zoom di HP saat fokus pada input */
+input, select {
+  font-size: 16px !important;
+}
